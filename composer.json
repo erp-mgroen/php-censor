@@ -1,5 +1,5 @@
 {
-  "name":              "corpsee/php-censor",
+  "name":              "erp-mgroen/php-censor",
   "description":       "PHP Censor is a open source self-hosted continuous integration server for PHP projects (Fork of PHPCI)",
   "minimum-stability": "stable",
   "type":              "application",
