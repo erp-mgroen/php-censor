@@ -359,7 +359,7 @@ class WebhookController extends Controller
      */
     public function gitlab($projectId)
     {
-        $project = $this->fetchProject($projectId, ['gitlab', 'remote']);
+        $project = $this->fetchProject($projectId, ['gitlab', 'crm', 'remote']);
 
         $payloadString = file_get_contents("php://input");
         $payload = json_decode($payloadString, true);
