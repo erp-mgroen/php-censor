@@ -34,15 +34,15 @@ class BuildService
     }
 
     /**
-     * @param Project     $project
-     * @param string      $environment
+     * @param Project $project
+     * @param string $environment
      * @param string|null $commitId
      * @param string|null $branch
      * @param string|null $tag
      * @param string|null $committerEmail
      * @param string|null $commitMessage
      * @param string|null $extra
-     * 
+     *
      * @return \PHPCensor\Model\Build
      */
     public function createBuild(
@@ -54,7 +54,8 @@ class BuildService
         $committerEmail = null,
         $commitMessage = null,
         $extra = null
-    ) {
+    )
+    {
         $build = new Build();
         $build->setCreated(new \DateTime());
         $build->setProject($project);
@@ -163,13 +164,13 @@ class BuildService
             return;
         }
 
-        $config   = Config::getInstance();
+        $config = Config::getInstance();
         $settings = $config->get('php-censor.queue', []);
 
         if (!empty($settings['host']) && !empty($settings['name'])) {
             try {
                 $jobData = [
-                    'type'     => 'php-censor.build',
+                    'type' => 'php-censor.build',
                     'build_id' => $build->getId(),
                 ];
 
@@ -185,5 +186,27 @@ class BuildService
                 $this->queueError = true;
             }
         }
+    }
+
+    public function getBuildQueue()
+    {
+        $config = Config::getInstance();
+        $settings = $config->get('php-censor.queue', []);
+
+        if (!empty($settings['host']) && !empty($settings['name'])) {
+            try {
+                $pheanstalk = new Pheanstalk($settings['host']);
+                $stats = $pheanstalk->statsTube($settings['name']);
+
+                return (int)$stats['current-jobs-ready'];
+            } catch (\Exception $ex) {
+                $this->queueError = true;
+            }
+        }
+    }
+
+    public function canBuild()
+    {
+        return $this->getBuildQueue() === 0;
     }
 }

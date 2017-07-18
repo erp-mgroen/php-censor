@@ -107,7 +107,7 @@ class WebhookController extends Controller
     protected function bitbucketWebhook($payload, $project)
     {
         $results = [];
-        $status  = 'failed';
+        $status = 'failed';
         foreach ($payload['push']['changes'] as $commit) {
             try {
                 $email = $commit['new']['target']['author']['raw'];
@@ -142,7 +142,7 @@ class WebhookController extends Controller
         $payload = json_decode($this->getParam('payload'), true);
 
         $results = [];
-        $status  = 'failed';
+        $status = 'failed';
         foreach ($payload['commits'] as $commit) {
             try {
                 $email = $commit['raw_author'];
@@ -170,7 +170,7 @@ class WebhookController extends Controller
      * Called by POSTing to /webhook/git/<project_id>?branch=<branch>&commit=<commit>
      *
      * @param string $projectId
-     * 
+     *
      * @return array
      */
     public function git($projectId)
@@ -200,8 +200,8 @@ class WebhookController extends Controller
                 break;
             default:
                 return [
-                    'status'       => 'failed',
-                    'error'        => 'Content type not supported.',
+                    'status' => 'failed',
+                    'error' => 'Content type not supported.',
                     'responseCode' => 401
                 ];
         }
@@ -238,22 +238,22 @@ class WebhookController extends Controller
         }
 
         if (isset($payload['head_commit']) && $payload['head_commit']) {
-            $isTag   = (substr($payload['ref'], 0, 10) == 'refs/tags/') ? true : false;
-            $commit  = $payload['head_commit'];
+            $isTag = (substr($payload['ref'], 0, 10) == 'refs/tags/') ? true : false;
+            $commit = $payload['head_commit'];
             $results = [];
-            $status  = 'failed';
-            
+            $status = 'failed';
+
             if (!$commit['distinct']) {
                 $results[$commit['id']] = ['status' => 'ignored'];
             } else {
                 try {
                     $tag = null;
                     if ($isTag) {
-                        $tag       = str_replace('refs/tags/', '', $payload['ref']);
-                        $branch    = str_replace('refs/heads/', '', $payload['base_ref']);
+                        $tag = str_replace('refs/tags/', '', $payload['ref']);
+                        $branch = str_replace('refs/heads/', '', $payload['base_ref']);
                         $committer = $payload['pusher']['email'];
                     } else {
-                        $branch    = str_replace('refs/heads/', '', $payload['ref']);
+                        $branch = str_replace('refs/heads/', '', $payload['ref']);
                         $committer = $commit['committer']['email'];
                     }
 
@@ -280,12 +280,12 @@ class WebhookController extends Controller
 
     /**
      * Handle the payload when Github sends a Pull Request webhook.
-     * 
+     *
      * @param Project $project
-     * @param array   $payload
-     * 
+     * @param array $payload
+     *
      * @return array
-     * 
+     *
      * @throws Exception
      */
     protected function githubPullRequest(Project $project, array $payload)
@@ -296,19 +296,19 @@ class WebhookController extends Controller
         }
 
         $headers = [];
-        $token   = Config::getInstance()->get('php-censor.github.token');
+        $token = Config::getInstance()->get('php-censor.github.token');
 
         if (!empty($token)) {
             $headers[] = 'Authorization: token ' . $token;
         }
 
-        $url    = $payload['pull_request']['commits_url'];
-        $http   = new HttpClient();
+        $url = $payload['pull_request']['commits_url'];
+        $http = new HttpClient();
         $http->setHeaders($headers);
 
         //for large pull requests, allow grabbing more then the default number of commits
         $custom_per_page = Config::getInstance()->get('php-censor.github.per_page');
-        $params          = [];
+        $params = [];
         if ($custom_per_page) {
             $params["per_page"] = $custom_per_page;
         }
@@ -320,7 +320,7 @@ class WebhookController extends Controller
         }
 
         $results = [];
-        $status  = 'failed';
+        $status = 'failed';
         foreach ($response['body'] as $commit) {
             // Skip all but the current HEAD commit ID:
             $id = $commit['sha'];
@@ -330,18 +330,18 @@ class WebhookController extends Controller
             }
 
             try {
-                $branch    = str_replace('refs/heads/', '', $payload['pull_request']['base']['ref']);
+                $branch = str_replace('refs/heads/', '', $payload['pull_request']['base']['ref']);
                 $committer = $commit['commit']['author']['email'];
-                $message   = $commit['commit']['message'];
+                $message = $commit['commit']['message'];
 
                 $remoteUrlKey = $payload['pull_request']['head']['repo']['private'] ? 'ssh_url' : 'clone_url';
 
                 $extra = [
-                    'build_type'          => 'pull_request',
-                    'pull_request_id'     => $payload['pull_request']['id'],
+                    'build_type' => 'pull_request',
+                    'pull_request_id' => $payload['pull_request']['id'],
                     'pull_request_number' => $payload['number'],
-                    'remote_branch'       => $payload['pull_request']['head']['ref'],
-                    'remote_url'          => $payload['pull_request']['head']['repo'][$remoteUrlKey],
+                    'remote_branch' => $payload['pull_request']['head']['ref'],
+                    'remote_url' => $payload['pull_request']['head']['repo'][$remoteUrlKey],
                 ];
 
                 $results[$id] = $this->createBuild($project, $id, $branch, null, $committer, $message, $extra);
@@ -365,7 +365,7 @@ class WebhookController extends Controller
         $payload = json_decode($payloadString, true);
 
         // build on merge request events
-        if (isset($payload['object_kind']) && $payload['object_kind'] == 'merge_request') {
+        if (isset($payload['object_kind']) && $payload['object_kind'] == 'merge_request' && $this->buildService->canBuild()) {
             $attributes = $payload['object_attributes'];
             if ($attributes['state'] == 'opened' || $attributes['state'] == 'reopened') {
                 $branch = $attributes['source_branch'];
@@ -377,28 +377,29 @@ class WebhookController extends Controller
         }
 
         // build on push events
-        if (isset($payload['commits']) && is_array($payload['commits'])) {
+        if (isset($payload['commits']) && is_array($payload['commits']) && $this->buildService->canBuild()) {
             // If we have a list of commits, then add them all as builds to be tested:
 
             $results = [];
-            $status  = 'failed';
-            foreach ($payload['commits'] as $commit) {
-                try {
-                    $branch = str_replace('refs/heads/', '', $payload['ref']);
-                    $committer = $commit['author']['email'];
-                    $results[$commit['id']] = $this->createBuild(
-                        $project,
-                        $commit['id'],
-                        $branch,
-                        null,
-                        $committer,
-                        $commit['message']
-                    );
-                    $status = 'ok';
-                } catch (Exception $ex) {
-                    $results[$commit['id']] = ['status' => 'failed', 'error' => $ex->getMessage()];
-                }
+            $status = 'failed';
+            $commit = $payload['commits'][0];
+
+            try {
+                $branch = str_replace('refs/heads/', '', $payload['ref']);
+                $committer = $commit['author']['email'];
+                $results[$commit['id']] = $this->createBuild(
+                    $project,
+                    $commit['id'],
+                    $branch,
+                    null,
+                    $committer,
+                    $commit['message']
+                );
+                $status = 'ok';
+            } catch (Exception $ex) {
+                $results[$commit['id']] = ['status' => 'failed', 'error' => $ex->getMessage()];
             }
+
             return ['status' => $status, 'commits' => $results];
         }
 
@@ -410,9 +411,9 @@ class WebhookController extends Controller
      * Called by POSTing to /webhook/svn/<project_id>?branch=<branch>&commit=<commit>
      *
      * @author Sylvain Lévesque <slevesque@gezere.com>
-     * 
+     *
      * @param string $projectId
-     * 
+     *
      * @return array
      */
     public function svn($projectId)
@@ -428,9 +429,9 @@ class WebhookController extends Controller
 
     /**
      * Called by Gogs Webhooks:
-     * 
+     *
      * @param string $projectId
-     * 
+     *
      * @return array
      */
     public function gogs($projectId)
@@ -459,7 +460,7 @@ class WebhookController extends Controller
      * Handle the payload when Gogs sends a commit webhook.
      *
      * @param Project $project
-     * @param array   $payload
+     * @param array $payload
      *
      * @return array
      */
@@ -468,7 +469,7 @@ class WebhookController extends Controller
         if (isset($payload['commits']) && is_array($payload['commits'])) {
             // If we have a list of commits, then add them all as builds to be tested:
             $results = [];
-            $status  = 'failed';
+            $status = 'failed';
             foreach ($payload['commits'] as $commit) {
                 try {
                     $branch = str_replace('refs/heads/', '', $payload['ref']);
@@ -497,12 +498,12 @@ class WebhookController extends Controller
      * Wrapper for creating a new build.
      *
      * @param Project $project
-     * @param string  $commitId
-     * @param string  $branch
-     * @param string  $tag
-     * @param string  $committer
-     * @param string  $commitMessage
-     * @param array   $extra
+     * @param string $commitId
+     * @param string $branch
+     * @param string $tag
+     * @param string $committer
+     * @param string $commitMessage
+     * @param array $extra
      *
      * @return array
      *
@@ -516,7 +517,8 @@ class WebhookController extends Controller
         $committer,
         $commitMessage,
         array $extra = null
-    ) {
+    )
+    {
         if ($project->getArchived()) {
             throw new NotFoundException(Lang::get('project_x_not_found', $project->getId()));
         }
@@ -525,18 +527,18 @@ class WebhookController extends Controller
         $builds = $this->buildStore->getByProjectAndCommit($project->getId(), $commitId);
 
         $ignore_environments = [];
-        $ignore_tags         = [];
+        $ignore_tags = [];
         if ($builds['count']) {
-            foreach($builds['items'] as $build) {
+            foreach ($builds['items'] as $build) {
                 /** @var Build $build */
                 $ignore_environments[$build->getId()] = $build->getEnvironment();
-                $ignore_tags[$build->getId()]         = $build->getTag();
+                $ignore_tags[$build->getId()] = $build->getTag();
             }
         }
 
         $environments = $project->getEnvironmentsObjects();
         if ($environments['count']) {
-            $created_builds    = [];
+            $created_builds = [];
             $environment_names = $project->getEnvironmentsNamesByBranch($branch);
             // use base branch from project
             if (!empty($environment_names)) {
@@ -559,7 +561,7 @@ class WebhookController extends Controller
                         );
 
                         $created_builds[] = [
-                            'id'          => $build->getID(),
+                            'id' => $build->getID(),
                             'environment' => $environment_name,
                         ];
                     } else {
@@ -598,7 +600,7 @@ class WebhookController extends Controller
                 return ['status' => 'ok', 'buildID' => $build->getID()];
             } else {
                 return [
-                    'status'  => 'ignored',
+                    'status' => 'ignored',
                     'message' => sprintf('Duplicate of build #%d', array_search($environment_name, $ignore_environments)),
                 ];
             }
