@@ -10,28 +10,43 @@ Nginx Example
 
 ```
 server {
-        ... standard virtual host ...
+    charset utf-8;
+    client_max_body_size 128M;
 
-        location / {
-                try_files $uri @php-censor;
-        }
+    listen *:80;
 
-        location @php-censor {
-                # Pass to FastCGI:
-                fastcgi_pass    unix:/path/to/phpfpm.sock;
-                fastcgi_index   index.php;
-                fastcgi_buffers 256 4k;
-                include         fastcgi_params;
-                fastcgi_param   SCRIPT_FILENAME $document_root/index.php;
-                fastcgi_param   SCRIPT_NAME index.php;
-        }
+    server_name php-censor.local www.php-censor.local;
+    root /var/www/php-censor.local/public;
+
+    #access_log /var/www/php-censor.local/runtime/nginx_access.log;
+    error_log  /var/www/php-censor.local/runtime/nginx_errors.log warn;
+
+    location ~* \.(htm|html|xhtml|jpg|jpeg|gif|png|css|zip|tar|tgz|gz|rar|bz2|doc|xls|exe|pdf|ppt|wav|bmp|rtf|swf|ico|flv|txt|docx|xlsx)$ {
+        try_files $uri @fpm;
+        expires    30d;
+    }
+
+    location / {
+        try_files $uri @fpm;
+    }
+
+    location @fpm {
+        fastcgi_pass  unix:/var/run/php/php-fpm.sock;
+
+        include fastcgi_params;
+
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root/index.php;
+        fastcgi_param SCRIPT_NAME index.php;
+    }
 }
 ```
 
 Apache Example
 --------------
 
-For Apache, you can use a standard virtual host, as long as your server supports PHP. All you need to do is add the following to a `.htaccess` file in your PHP Censor `/public` directory.
+For Apache, you can use a standard virtual host, as long as your server supports PHP. All you need to do is add the 
+following to a `.htaccess` file in your PHP Censor `/public` directory.
 
 ```
 <IfModule mod_rewrite.c>
@@ -46,15 +61,17 @@ For Apache, you can use a standard virtual host, as long as your server supports
 - Edit virtual host in apache2.
 ```
 <VirtualHost *:80>
-    ServerAdmin user@domain.com
+    ServerAdmin  admin@php-censor.local
     DocumentRoot /var/www/php-censor.local/public
-    ServerName php-censor.local
+    ServerName   php-censor.local
+    ServerAlias  www.php-censor.local
 
-    <Directory /var/www/php-censor.local/public/>
+    <Directory /var/www/php-censor.local/public/ >
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
     </Directory>
+
     ErrorLog ${APACHE_LOG_DIR}/php-censor-error_log
     CustomLog ${APACHE_LOG_DIR}/php-censor-access_log combined
 </VirtualHost>
@@ -62,7 +79,7 @@ For Apache, you can use a standard virtual host, as long as your server supports
 
 - Add in /etc/hosts
 ```
-127.0.0.1   php-censor.local
+127.0.0.1 php-censor.local www.php-censor.local
 ```
 
 Built-in PHP Server Example

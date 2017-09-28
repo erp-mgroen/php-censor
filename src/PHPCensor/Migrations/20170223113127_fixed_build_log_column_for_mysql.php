@@ -11,7 +11,11 @@ class FixedBuildLogColumnForMysql extends AbstractMigration
         if ($adapter instanceof MysqlAdapter) {
             $this
                 ->table('build')
-                ->changeColumn('log', MysqlAdapter::PHINX_TYPE_TEXT, ['limit' => MysqlAdapter::TEXT_LONG])
+                ->changeColumn(
+                    'log',
+                    MysqlAdapter::PHINX_TYPE_TEXT,
+                    ['limit' => MysqlAdapter::TEXT_LONG]
+                )
                 ->save();
         }
     }

@@ -1,15 +1,16 @@
-[![PHPCensor](http://php-censor.corpsee.com/build-status/image/6?branch=master&label=PHPCensor&style=flat-square)](http://php-censor.corpsee.com/build-status/view/6?branch=master)
-[![TravisCI](https://img.shields.io/travis/corpsee/php-censor/master.svg?label=TravisCI&style=flat-square)](https://travis-ci.org/corpsee/php-censor?branch=master)
-[![Latest Version](https://img.shields.io/packagist/v/corpsee/php-censor.svg?label=Version&style=flat-square)](https://packagist.org/packages/corpsee/php-censor)
-[![Total downloads](https://img.shields.io/packagist/dt/corpsee/php-censor.svg?label=Downloads&style=flat-square)](https://packagist.org/packages/corpsee/php-censor)
-[![License](https://img.shields.io/packagist/l/corpsee/php-censor.svg?label=License&style=flat-square)](https://packagist.org/packages/corpsee/php-censor)
+[![PHP Censor](http://ci.php-censor.info/build-status/image/2?branch=master&label=PHPCensor&style=flat-square)](http://ci.php-censor.info/build-status/view/2?branch=master)
+[![Travis CI](https://img.shields.io/travis/php-censor/php-censor/master.svg?label=TravisCI&style=flat-square)](https://travis-ci.org/php-censor/php-censor?branch=master)
+[![Latest Version](https://img.shields.io/packagist/v/php-censor/php-censor.svg?label=Version&style=flat-square)](https://packagist.org/packages/php-censor/php-censor)
+[![Total downloads](https://img.shields.io/packagist/dt/php-censor/php-censor.svg?label=Downloads&style=flat-square)](https://packagist.org/packages/php-censor/php-censor)
+[![License](https://img.shields.io/packagist/l/php-censor/php-censor.svg?label=License&style=flat-square)](https://packagist.org/packages/php-censor/php-censor)
 [![SensioLabs Insight](https://img.shields.io/sensiolabs/i/26f28bee-a861-45b2-bc18-ed2ac7defd22.svg?label=Insight&style=flat-square)](https://insight.sensiolabs.com/projects/26f28bee-a861-45b2-bc18-ed2ac7defd22)
 
-PHP Censor
-==========
+<p align="center">
+    <img width="500" height="auto" src="docs/images/php-censor-black.png" alt="PHP Censor" />
+</p>
 
-**PHP Censor** is a open source self-hosted continuous integration server for PHP projects (Fork of 
-[PHPCI](https://www.phptesting.org)).
+**PHP Censor** is a open source self-hosted continuous integration server for PHP projects 
+([PHPCI](https://www.phptesting.org) fork).
 
 [![Dashboard](docs/screenshots/dashboard.png)](docs/screenshots/dashboard.png)
 
@@ -44,17 +45,17 @@ Features
 
 * Clone project from Github, Bitbucket, Gitlab, Git, Mercurial, SVN or from local directory;
 
-* Set up and tear down database tests for [PostgreSQL](docs/plugins/pgsql.md), [MySQL](docs/plugins/mysql.md) or 
-[SQLite](docs/plugins/sqlite.md);
+* Set up and tear down database tests for [PostgreSQL](docs/en/plugins/pgsql.md), [MySQL](docs/en/plugins/mysql.md) or 
+[SQLite](docs/en/plugins/sqlite.md);
 
-* Install [Composer](docs/plugins/composer.md) dependencies;
+* Install [Composer](docs/en/plugins/composer.md) dependencies;
 
 * Run tests for PHPUnit, Atoum, Behat, Codeception and PHPSpec;
 
 * Check code via Lint, PHPParallelLint, Pdepend, PHPCodeSniffer, PHPCpd, PHPCsFixer, PHPDocblockChecker, PHPLoc, 
 PHPMessDetect, PHPTalLint and TechnicalDept;
 
-* Run through any combination of the other [supported plugins](docs/en/README.md), including Campfire, CleanBuild, 
+* Run through any combination of the other [supported plugins](docs/en/README.md#plugins), including Campfire, CleanBuild, 
 CopyBuild, Deployer, Env, Git, Grunt, Gulp, PackageBuild, Phar, Phing, Shell and Wipe;
 
 * Send notifications on Email, XMPP, Slack, IRC, Flowdock, HipChat and [Telegram](https://github.com/LEXASOFT/PHP-Censor-Telegram-Plugin);
@@ -73,10 +74,10 @@ cd /var/www
 * Create project by Composer:
 
 ```bash
-composer create-project corpsee/php-censor php-censor.local --keep-vcs
+composer create-project php-censor/php-censor php-censor.local --keep-vcs
 ```
 
-Or download [latest archive](https://github.com/corpsee/php-censor/releases/latest) from Github, unzip it and run 
+Or download [latest archive](https://github.com/php-censor/php-censor/releases/latest) from Github, unzip it and run 
 `composer install`.
 
 * Create empty database for application (Mysql/MariaDB or Postgres);
@@ -112,30 +113,55 @@ Installing via Docker
 --------------------
 
 If you want to install PHP Censor as Docker container, you can use 
-[ket4yii/docker-php-censor](https://github.com/ket4yii/docker-php-censor) project.
+[php-censor/docker-php-censor](https://github.com/php-censor/docker-php-censor) project.
 
 Updating
 --------
 
 * Go to your PHP Censor directory (to `/var/www/php-censor.local` for example):
 
-```bash
-cd /var/www/php-censor.local
-```
+    ```bash
+    cd /var/www/php-censor.local
+    ```
 
-* Pull the latest code by Git:
+* Pull the latest code from repository by Git (If you want latest `master` branch):
 
-```bash
-git pull -r
-```
+    ```bash
+    git checkout master
+    git pull -r
+    ```
+
+    Or pull latest version:
+
+    ```bash
+    git fetch
+    git checkout <version>
+    ```
 
 * Update the Composer dependencies: `composer install`
 
-* Update the PHP Censor database scheme:
+* Update the database scheme:
 
-```bash
-./bin/console php-censor-migrations:migrate
-```
+    ```bash
+    ./bin/console php-censor-migrations:migrate
+    ```
+
+* Restart Supervisord workers (If you use workers and Supervisord):
+
+    ```bash
+    sudo supervisorctl status
+    sudo supervisorctl restart <worker:worker_00>
+    ...
+    sudo supervisorctl restart <worker:worker_nn>
+    ```
+    
+    Or restart Systemd workers (If you use workers and Systemd):
+    
+    ```bash
+    sudo systemctl restart <worker@1.service>
+    ...
+    sudo systemctl restart <worker@n.service>
+    ```
 
 Configuring project
 -------------------

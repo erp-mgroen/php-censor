@@ -253,13 +253,25 @@ class InstallCommand extends Command
             'per_page' => 10,
             'url'      => $url,
             'queue'    => $queueConfig,
+            'log'      => [
+                'rotate'    => false,
+                'max_files' => 0,
+            ],
             'email_settings' => [
-                'from_address'           => 'no-reply@php-censor.local',
+                'from_address'           => 'PHP Censor <no-reply@php-censor.local>',
                 'smtp_address'           => null,
                 'smtp_port'              => null,
                 'smtp_username'          => null,
                 'smtp_password'          => null,
                 'smtp_encryption'        => false,
+            ],
+            'bitbucket'   => [
+                'username'     => null,
+                'app_password' => null,
+                'comments' => [
+                    'commit'       => false,
+                    'pull_request' => false,
+                ],
             ],
             'github'   => [
                 'token'    => null,
@@ -269,7 +281,8 @@ class InstallCommand extends Command
                 ],
             ],
             'build' => [
-                'remove_builds' => true,
+                'remove_builds'      => true,
+                'writer_buffer_size' => 500,
             ],
             'security' => [
                 'disable_auth'    => false,
@@ -297,7 +310,7 @@ class InstallCommand extends Command
             'use_queue' => false,
             'host'      => null,
             'name'      => null,
-            'lifetime'  => 600
+            'lifetime'  => 600,
         ];
         
         if (!$input->getOption('queue-use')) {
@@ -306,6 +319,9 @@ class InstallCommand extends Command
 
         $queueConfig = [
             'use_queue' => true,
+            'host'      => null,
+            'name'      => null,
+            'lifetime'  => 600,
         ];
 
         $queueConfig['host'] = $input->getOption('queue-host');

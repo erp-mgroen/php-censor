@@ -282,9 +282,10 @@ class ProjectController extends PHPCensor\Controller
         $this->layout->title = Lang::get('add_project');
         $this->requireAdmin();
 
-        $method = $this->request->getMethod();
-        $pub    = null;
-        $values = $this->getParams();
+        $method           = $this->request->getMethod();
+        $pub              = null;
+        $values           = $this->getParams();
+        $values['branch'] = '';
 
         if ($method != 'POST') {
             $sshKey = new SshKey();
@@ -316,6 +317,7 @@ class ProjectController extends PHPCensor\Controller
                 'build_config'        => $this->getParam('build_config', null),
                 'allow_public_status' => $this->getParam('allow_public_status', 0),
                 'branch'              => $this->getParam('branch', null),
+                'default_branch_only' => $this->getParam('default_branch_only', 0),
                 'group'               => $this->getParam('group_id', null),
                 'environments'        => $this->getParam('environments', null),
             ];
@@ -351,7 +353,7 @@ class ProjectController extends PHPCensor\Controller
         $values['pubkey']       = $values['ssh_public_key'];
         $values['environments'] = $project->getEnvironments();
 
-        if ($values['type'] == 'gitlab' || $values['type'] == 'crm') {
+        if ($values['type'] == 'gitlab') {
             $accessInfo          = $project->getAccessInformation();
             $reference           = $accessInfo["user"] . '@' . $accessInfo["domain"] . ':' . $accessInfo["port"] . '/' . ltrim($project->getReference(), '/') . ".git";
             $values['reference'] = $reference;
@@ -384,6 +386,7 @@ class ProjectController extends PHPCensor\Controller
             'allow_public_status' => $this->getParam('allow_public_status', 0),
             'archived'            => $this->getParam('archived', 0),
             'branch'              => $this->getParam('branch', null),
+            'default_branch_only' => $this->getParam('default_branch_only', 0),
             'group'               => $this->getParam('group_id', null),
             'environments'        => $this->getParam('environments', null),
         ];
@@ -402,8 +405,10 @@ class ProjectController extends PHPCensor\Controller
     protected function projectForm($values, $type = 'add')
     {
         $form = new Form();
+
         $form->setMethod('POST');
         $form->setAction(APP_URL.'project/' . $type);
+
         $form->addField(new Form\Element\Csrf('csrf'));
         $form->addField(new Form\Element\Hidden('pubkey'));
 
@@ -418,11 +423,10 @@ class ProjectController extends PHPCensor\Controller
             'local'       => Lang::get('local'),
             'hg'          => 'Mercurial (Hg)',
             'svn'         => 'SVN',
-            'crm'         => 'crm',
         ];
 
         $field = Form\Element\Select::create('type', Lang::get('where_hosted'), true);
-        $field->setPattern('^(github|bitbucket|bitbuckethg|gitlab|crm|gogs|remote|local|hg|svn)');
+        $field->setPattern('^(github|bitbucket|bitbuckethg|gitlab|gogs|remote|local|hg|svn)');
         $field->setOptions($options);
         $field->setClass('form-control')->setContainerClass('form-group');
         $form->addField($field);
@@ -446,6 +450,16 @@ class ProjectController extends PHPCensor\Controller
 
         $field = Form\Element\Text::create('branch', Lang::get('default_branch'), false);
         $field->setClass('form-control')->setContainerClass('form-group')->setValue('');
+        $form->addField($field);
+
+        $field = Form\Element\Checkbox::create(
+            'default_branch_only',
+            Lang::get('default_branch_only'),
+            false
+        );
+        $field->setContainerClass('form-group');
+        $field->setCheckedValue(1);
+        $field->setValue(0);
         $form->addField($field);
 
         $field = Form\Element\TextArea::create('key', Lang::get('project_private_key'), false);
@@ -496,6 +510,7 @@ class ProjectController extends PHPCensor\Controller
         $form->addField($field);
 
         $form->setValues($values);
+
         return $form;
     }
 
@@ -519,10 +534,6 @@ class ProjectController extends PHPCensor\Controller
                     'message' => Lang::get('error_remote')
                 ],
                 'gitlab' => [
-                    'regex'   => '`^(.*)@(.*):(.*)/(.*)\.git`',
-                    'message' => Lang::get('error_gitlab')
-                ],
-                'crm' => [
                     'regex'   => '`^(.*)@(.*):(.*)/(.*)\.git`',
                     'message' => Lang::get('error_gitlab')
                 ],

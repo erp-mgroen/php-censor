@@ -1,3 +1,7 @@
+.main-header .logo {
+    padding: 0 30px;
+}
+
 .wrapper,
 .main-sidebar,
 .left-side {
@@ -490,6 +494,10 @@
     text-overflow: ellipsis;
 }
 
+.table-hover td {
+    height: 50px;
+}
+
 .small-box > .inner {
     border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 }
@@ -552,8 +560,7 @@ h6,
 .h3,
 .h4,
 .h5,
-.h6,
-.main-header .logo {
+.h6 {
     font-family: sans-serif;
 }
 

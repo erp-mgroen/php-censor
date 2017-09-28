@@ -4,6 +4,7 @@ namespace PHPCensor\Console;
 
 use b8\Config;
 use b8\Store\Factory;
+use Monolog\Handler\RotatingFileHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use PHPCensor\Command\CreateAdminCommand;
@@ -13,7 +14,7 @@ use PHPCensor\Command\RebuildCommand;
 use PHPCensor\Command\RebuildQueueCommand;
 use PHPCensor\Command\RunCommand;
 use PHPCensor\Command\WorkerCommand;
-use PHPCensor\Logging\LoggerConfig;
+use PHPCensor\Logging\Handler;
 use PHPCensor\Service\BuildService;
 use PHPCensor\Store\BuildStore;
 use PHPCensor\Store\ProjectStore;
@@ -27,11 +28,34 @@ use Phinx\Config\Config as PhinxConfig;
 
 /**
  * Class Application
- * 
+ *
  * @package PHPCensor\Console
  */
 class Application extends BaseApplication
 {
+    /**
+     * @param Config $applicationConfig
+     *
+     * @return Logger
+     */
+    protected function initLogger(Config $applicationConfig)
+    {
+        $rotate   = (bool)$applicationConfig->get('php-censor.log.rotate', false);
+        $maxFiles = (int)$applicationConfig->get('php-censor.log.max_files', 0);
+
+        $loggerHandlers = [];
+        if ($rotate) {
+            $loggerHandlers[] = new RotatingFileHandler(RUNTIME_DIR . 'console.log', $maxFiles, Logger::DEBUG);
+        } else {
+            $loggerHandlers[] = new StreamHandler(RUNTIME_DIR . 'console.log', Logger::DEBUG);
+        }
+
+        $logger = new Logger('php-censor', $loggerHandlers);
+        Handler::register($logger);
+
+        return $logger;
+    }
+
     /**
      * Constructor.
      *
@@ -41,14 +65,6 @@ class Application extends BaseApplication
     public function __construct($name = 'PHP Censor - Continuous Integration for PHP', $version = '')
     {
         parent::__construct($name, $version);
-
-        $loggerConfig = new LoggerConfig([
-            "_" => function() {
-                return [
-                    new StreamHandler(RUNTIME_DIR . 'console.log', Logger::DEBUG),
-                ];
-            }
-        ]);
 
         $applicationConfig = Config::getInstance();
         $databaseSettings  = $applicationConfig->get('b8.database', []);
@@ -72,7 +88,7 @@ class Application extends BaseApplication
                 ],
             ];
         }
-        
+
         if (!empty($databaseSettings['port'])) {
             $phinxSettings['environments']['php-censor']['port'] = (integer)$databaseSettings['port'];
         }
@@ -99,22 +115,24 @@ class Application extends BaseApplication
                 ->setConfig($phinxConfig)
                 ->setName('php-censor-migrations:status')
         );
-        
+
         /** @var UserStore $userStore */
         $userStore = Factory::getStore('User');
-        
+
         /** @var ProjectStore $projectStore */
         $projectStore = Factory::getStore('Project');
-        
+
         /** @var BuildStore $buildStore */
         $buildStore = Factory::getStore('Build');
 
-        $this->add(new RunCommand($loggerConfig->getFor('RunCommand')));
-        $this->add(new RebuildCommand($loggerConfig->getFor('RunCommand')));
+        $logger = $this->initLogger($applicationConfig);
+
+        $this->add(new RunCommand($logger));
+        $this->add(new RebuildCommand($logger));
         $this->add(new InstallCommand());
         $this->add(new CreateAdminCommand($userStore));
         $this->add(new CreateBuildCommand($projectStore, new BuildService($buildStore)));
-        $this->add(new WorkerCommand($loggerConfig->getFor('WorkerCommand')));
-        $this->add(new RebuildQueueCommand($loggerConfig->getFor('RebuildQueueCommand')));
+        $this->add(new WorkerCommand($logger));
+        $this->add(new RebuildQueueCommand($logger));
     }
 }

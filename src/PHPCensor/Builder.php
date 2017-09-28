@@ -52,7 +52,7 @@ class Builder implements LoggerAwareInterface
     /**
      * @var array
      */
-    protected $config;
+    protected $config = [];
 
     /**
      * @var string
@@ -109,7 +109,7 @@ class Builder implements LoggerAwareInterface
         $pluginFactory        = $this->buildPluginFactory($build);
         $this->pluginExecutor = new Plugin\Util\Executor($pluginFactory, $this->buildLogger);
 
-        $executorClass         = 'PHPCensor\Helper\UnixCommandExecutor';
+        $executorClass         = 'PHPCensor\Helper\CommandExecutor';
         $this->commandExecutor = new $executorClass(
             $this->buildLogger,
             ROOT_DIR,
@@ -205,6 +205,9 @@ class Builder implements LoggerAwareInterface
             // Run the core plugin stages:
             foreach ([Build::STAGE_SETUP, Build::STAGE_TEST, Build::STAGE_DEPLOY] as $stage) {
                 $success &= $this->pluginExecutor->executePlugins($this->config, $stage);
+                if (!$success) {
+                    break;
+                }
             }
 
             // Set the status so this can be used by complete, success and failure
@@ -214,8 +217,13 @@ class Builder implements LoggerAwareInterface
             } else {
                 $this->build->setStatus(Build::STATUS_FAILED);
             }
+        } catch (\Exception $ex) {
+            $success = false;
+            $this->build->setStatus(Build::STATUS_FAILED);
+            $this->buildLogger->logFailure('Exception: ' . $ex->getMessage(), $ex);
+        }
 
-
+        try {
             if ($success) {
                 $this->pluginExecutor->executePlugins($this->config, Build::STAGE_SUCCESS);
 
@@ -230,7 +238,6 @@ class Builder implements LoggerAwareInterface
                 }
             }
         } catch (\Exception $ex) {
-            $this->build->setStatus(Build::STATUS_FAILED);
             $this->buildLogger->logFailure('Exception: ' . $ex->getMessage(), $ex);
         }
 
@@ -289,14 +296,18 @@ class Builder implements LoggerAwareInterface
 
     /**
      * Find a binary required by a plugin.
+     *
      * @param string $binary
-     * @param bool $quiet
+     * @param bool   $quiet Returns null instead of throwing an exception.
+     * @param string $priorityPath
      *
      * @return null|string
+     *
+     * @throws \Exception when no binary has been found and $quiet is false.
      */
-    public function findBinary($binary, $quiet = false)
+    public function findBinary($binary, $quiet = false, $priorityPath = 'local')
     {
-        return $this->commandExecutor->findBinary($binary, $quiet);
+        return $this->commandExecutor->findBinary($binary, $quiet, $priorityPath);
     }
 
     /**

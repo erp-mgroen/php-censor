@@ -106,7 +106,7 @@ class PhpCodeSniffer extends Plugin implements ZeroConfigPluginInterface
         }
 
         if (!empty($options['allowed_errors']) && is_int($options['allowed_errors'])) {
-            $this->allowed_warnings = $options['allowed_errors'];
+            $this->allowed_errors = $options['allowed_errors'];
         }
 
         if (!empty($options['allowed_warnings']) && is_int($options['allowed_warnings'])) {
@@ -171,7 +171,7 @@ class PhpCodeSniffer extends Plugin implements ZeroConfigPluginInterface
     {
         list($ignore, $standard, $suffixes, $severity, $errorSeverity, $warningSeverity) = $this->getFlags();
 
-        $phpcs = $this->builder->findBinary('phpcs');
+        $phpcs = $this->findBinary('phpcs');
 
         $this->builder->logExecOutput(false);
 
