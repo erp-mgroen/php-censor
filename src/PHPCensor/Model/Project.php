@@ -814,6 +814,7 @@ class Project extends Model
 
             case 'remote':
             case 'gitlab':
+            case 'crm':
             default:
                 $icon = 'code-fork';
                 break;

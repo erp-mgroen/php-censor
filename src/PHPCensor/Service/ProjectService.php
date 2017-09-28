@@ -123,7 +123,7 @@ class ProjectService
         $matches   = [];
         $reference = $project->getReference();
 
-        if ($project->getType() == 'gitlab') {
+        if ($project->getType() == 'gitlab' || $project->getType() == 'crm') {
             $info = [];
 
             if (preg_match('`^(.+)@(.+):([0-9]*)\/?(.+)\.git`', $reference, $matches)) {
