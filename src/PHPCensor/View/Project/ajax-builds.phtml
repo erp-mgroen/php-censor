@@ -1,0 +1,104 @@
+<?php use PHPCensor\Helper\Lang; ?>
+
+<?php if(empty($builds) || !count($builds)): ?>
+    <tr class="">
+        <td colspan="6"><?php Lang::out('no_builds_yet'); ?></td>
+    </tr>
+<?php endif; ?>
+
+<?php foreach($builds as $build): ?>
+
+<?php
+switch($build->getStatus())
+{
+    case 0:
+        $cls = 'active';
+        $subcls = 'info';
+        $status = Lang::get('pending');
+    
+    break;
+    
+    case 1:
+        $cls = 'warning';
+        $subcls = 'warning';
+        $status = Lang::get('running');
+    break;
+    
+    case 2:
+        $cls = 'success';
+        $subcls = 'success';
+        $status = Lang::get('success');
+    break;
+    
+    case 3:
+        $cls = 'danger';
+        $subcls = 'danger';
+        $status = Lang::get('failed');
+    break;
+}
+
+$branches = $build->getExtra('branches');
+?>
+<tr>
+    <td><a href="<?php echo APP_URL ?>build/view/<?php print $build->getId(); ?>">#<?php print str_pad($build->getId(), 6, '0', STR_PAD_LEFT); ?></a></td>
+    <td><span class='label label-<?php echo $subcls ?>'><?php echo $status ?></span></td>
+    <td><?php print $build->getCreated()->format('Y-m-d H:i:s'); ?></td>
+    <td class="hidden-md hidden-sm hidden-xs">
+        <?php
+            if ($build->getCommitId() !== 'Manual') {
+                print sprintf(
+                    '<a href="%s" target="_blank">%s (%s)</a>',
+                    $build->getCommitLink(),
+                    substr($build->getCommitId(), 0, 7),
+                    $build->getCommitterEmail()
+                );
+            } else {
+                print Lang::get('manual_build');
+            }
+        ?>
+    </td>
+    <td>
+        <a href="<?= $build->getBranchLink(); ?>" target="_blank">
+            <i class="fa fa-code-fork"></i> <?= $build->getBranch(); ?>
+        </a>
+        <?= $branches ? ' + '.implode(', ', $branches) : ''; ?>
+        <?php if ($tag = $build->getTag()): ?> / 
+             <a href="<?= $build->getTagLink(); ?>" target="_blank">
+                <i class="fa fa-tag"></i> <?= $tag; ?>
+            </a>
+        <?php endif; ?>
+    </td>
+    <td>
+        <?php
+            $environment = $build->getEnvironment();
+            echo !empty($environment) ? $environment : '—' ;
+        ?>
+    </td>
+    <td>
+        <?= $build->getDuration(); ?> <?= Lang::get('seconds'); ?>
+    </td>
+    <td>
+        <div class="btn-group btn-group-right">
+            <a class="btn btn-default btn-sm" href="<?php echo APP_URL ?>build/view/<?php print $build->getId(); ?>"><?php Lang::out('view'); ?></a>
+            <?php if($this->User()->getIsAdmin()): ?>
+            <button class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a href="<?php echo APP_URL ?>build/delete/<?php print $build->getId(); ?>" class="delete-build"><?php Lang::out('delete_build'); ?></a></li>
+            </ul>
+            <?php endif; ?>
+        </div>
+    </td>
+</tr>
+<?php endforeach; ?>
+
+<script>
+    $(document).ready(function() {
+        $('.delete-build').on('click', function (e) {
+            e.preventDefault();
+            confirmDelete(e.target.href)
+                .onCloseConfirmed = function () {window.location = window.location.href};
+        });
+    });
+</script>

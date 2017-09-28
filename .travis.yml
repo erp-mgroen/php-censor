@@ -1,0 +1,38 @@
+language: php
+
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.composer/cache
+
+php:
+  - 5.6.30
+  - 7.0.21
+  - 7.1.7
+
+matrix:
+  fast_finish: true
+
+env:
+  - TYPE=mysql
+  - TYPE=pgsql
+
+install:
+  - composer selfupdate
+  - composer install
+
+before_script:
+  - if [[ "$TYPE" == "mysql" ]]; then mysql -e "create database IF NOT EXISTS b8_test;" -uroot; fi
+  - if [[ "$TYPE" == "pgsql" ]]; then psql -c 'create database b8_test;' -U postgres; fi
+
+script:
+  - vendor/bin/phpunit --configuration phpunit.$TYPE.xml --coverage-text
+
+notifications:
+  email:
+    recipients:
+      - poisoncorpsee@gmail.com
+
+    on_success: always
+    on_failure: always

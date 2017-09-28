@@ -1,0 +1,5 @@
+/vendor
+/composer.phar
+/runtime
+/app/config.yml
+/public/assets/vendor

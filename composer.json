@@ -1,0 +1,102 @@
+{
+  "name":              "php-censor/php-censor",
+  "description":       "PHP Censor is a open source self-hosted continuous integration server for PHP projects (PHPCI fork).",
+  "minimum-stability": "stable",
+  "type":              "application",
+  "keywords":          ["php", "php-censor", "phpci", "ci-server", "testing", "self-hosted", "open-source", "ci", "continuous integration"],
+  "homepage":          "http://php-censor.info",
+  "license":           "BSD-2-Clause",
+  "authors":           [
+    {
+      "name":     "Dmitry Khomutov",
+      "email":    "poisoncorpsee@gmail.com",
+      "homepage": "http://corpsee.com",
+      "role":     "PHP Censor developer"
+    },
+    {
+      "name":     "Dan Cryer",
+      "email":    "dan.cryer@block8.co.uk",
+      "homepage": "http://www.block8.co.uk",
+      "role":     "PHPCI developer"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/php-censor/php-censor/issues",
+    "source": "https://github.com/php-censor/php-censor"
+  },
+  "autoload": {
+    "psr-4": {
+      "PHPCensor\\": "src/PHPCensor/",
+      "b8\\":        "src/B8Framework/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\PHPCensor\\": "tests/PHPCensor/",
+      "Tests\\b8\\":        "tests/B8Framework/"
+    }
+  },
+  "require": {
+    "php":         ">=5.6.0",
+    "ext-openssl": "*",
+    "ext-pdo":     "*",
+    "ext-json":    "*",
+    "ext-xml":     "*",
+    "ext-curl":    "*",
+
+    "swiftmailer/swiftmailer":   "5.4.*",
+    "symfony/yaml":              "3.3.*",
+    "symfony/console":           "3.3.*",
+    "psr/log":                   "1.0.*",
+    "monolog/monolog":           "1.22.*",
+    "pimple/pimple":             "3.0.*",
+    "robmorgan/phinx":           "0.8.*",
+    "sensiolabs/ansi-to-html":   "1.1.*",
+    "pda/pheanstalk":            "3.1.*",
+    "guzzlehttp/guzzle":         "6.2.*",
+
+    "phpunit/phpunit":                 "5.7.*",
+    "codeception/codeception":         "2.3.*",
+    "phpmd/phpmd":                     "2.6.*",
+    "sebastian/phpcpd":                "2.0.*",
+    "squizlabs/php_codesniffer":       "2.8.*",
+    "block8/php-docblock-checker":     "1.3.*",
+    "phploc/phploc":                   "4.0.*",
+    "jakub-onderka/php-parallel-lint": "0.9.*",
+    "sensiolabs/security-checker":     "4.0.*",
+    
+    "doctrine/instantiator":    "1.0.*",
+    "phpunit/php-token-stream": "1.4.*",
+
+    "mnsami/composer-custom-directory-installer": "1.1.*",
+
+    "npm-asset/sprintf-js":     "1.0.*",
+    "npm-asset/codemirror":     "5.23.*",
+    "bower-asset/admin-lte":    "2.3.*",
+    "bower-asset/font-awesome": "4.7.*",
+    "bower-asset/ionicons":     "2.0.*",
+    "bower-asset/raphael":      "2.2.*"
+  },
+  "suggest": {
+    "maknz/slack":         "For SlackNotify plugin",
+    "hipchat/hipchat-php": "For HipchatNotify plugin",
+    "mremi/flowdock":      "For FlowdockNotify plugin"
+  },
+  "extra": {
+    "installer-paths": {
+      "public/assets/vendor/sprintf-js":   ["npm-asset/sprintf-js"],
+      "public/assets/vendor/codemirror":   ["npm-asset/codemirror"],
+      "public/assets/vendor/admin-lte":    ["bower-asset/admin-lte"],
+      "public/assets/vendor/font-awesome": ["bower-asset/font-awesome"],
+      "public/assets/vendor/ion-icons":    ["bower-asset/ionicons"],
+      "public/assets/vendor/raphael":      ["bower-asset/raphael"],
+      "public/assets/vendor/eve-raphael":  ["bower-asset/eve-raphael"]
+    }
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url":  "https://asset-packagist.org"
+    }
+  ]
+}
