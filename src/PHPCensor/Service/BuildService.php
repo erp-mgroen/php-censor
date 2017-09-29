@@ -64,10 +64,6 @@ class BuildService
         $branches = $project->getBranchesByEnvironment($environment);
         $build->setExtraValue('branches', $branches);
 
-        if (!$this->canBuild()) {
-            return;
-        }
-
         if (!empty($commitId)) {
             $build->setCommitId($commitId);
         } else {
@@ -98,14 +94,16 @@ class BuildService
         }
 
         /** @var Build $build */
-        $build = $this->buildStore->save($build);
+        if ($this->canBuild()) {
+            $build = $this->buildStore->save($build);
 
-        $buildId = $build->getId();
+            $buildId = $build->getId();
 
-        if (!empty($buildId)) {
-            $build = BuildFactory::getBuild($build);
-            $build->sendStatusPostback();
-            $this->addBuildToQueue($build);
+            if (!empty($buildId) ) {
+                $build = BuildFactory::getBuild($build);
+                $build->sendStatusPostback();
+                $this->addBuildToQueue($build);
+            }
         }
 
         return $build;
