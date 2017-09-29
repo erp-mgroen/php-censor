@@ -417,6 +417,7 @@ class ProjectController extends PHPCensor\Controller
             'github'      => 'GitHub',
             'bitbucket'   => 'Bitbucket (Git)',
             'bitbuckethg' => 'Bitbucket (Hg)',
+            'crm'         => 'crm',
             'gitlab'      => 'GitLab',
             'gogs'        => 'Gogs',
             'remote'      => 'Git',
@@ -426,7 +427,7 @@ class ProjectController extends PHPCensor\Controller
         ];
 
         $field = Form\Element\Select::create('type', Lang::get('where_hosted'), true);
-        $field->setPattern('^(github|bitbucket|bitbuckethg|gitlab|gogs|remote|local|hg|svn)');
+        $field->setPattern('^(github|bitbucket|bitbuckethg|gitlab|crm|gogs|remote|local|hg|svn)');
         $field->setOptions($options);
         $field->setClass('form-control')->setContainerClass('form-group');
         $form->addField($field);
@@ -534,6 +535,10 @@ class ProjectController extends PHPCensor\Controller
                     'message' => Lang::get('error_remote')
                 ],
                 'gitlab' => [
+                    'regex'   => '`^(.*)@(.*):(.*)/(.*)\.git`',
+                    'message' => Lang::get('error_gitlab')
+                ],
+                'crm' => [
                     'regex'   => '`^(.*)@(.*):(.*)/(.*)\.git`',
                     'message' => Lang::get('error_gitlab')
                 ],
