@@ -160,7 +160,7 @@ class BuildService
     {
         $buildId = $build->getId();
 
-        if (empty($buildId)) {
+        if (empty($buildId) && $this->canBuild()) {
             return;
         }
 
