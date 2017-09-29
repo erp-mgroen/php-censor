@@ -94,17 +94,20 @@ class BuildService
         }
 
         /** @var Build $build */
-        if ($this->canBuild()) {
-            $build = $this->buildStore->save($build);
-
-            $buildId = $build->getId();
-
-            if (!empty($buildId) ) {
-                $build = BuildFactory::getBuild($build);
-                $build->sendStatusPostback();
-                $this->addBuildToQueue($build);
-            }
+        if ($commitId && !$this->canBuild()) {
+           return $build;
         }
+
+        $build = $this->buildStore->save($build);
+
+        $buildId = $build->getId();
+
+        if (!empty($buildId) ) {
+            $build = BuildFactory::getBuild($build);
+            $build->sendStatusPostback();
+            $this->addBuildToQueue($build);
+        }
+
 
         return $build;
     }
