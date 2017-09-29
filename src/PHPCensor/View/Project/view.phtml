@@ -208,7 +208,7 @@
             </div>
         <?php endif; ?>
 
-        <?php if (in_array($project->getType(), ['github', 'gitlab', 'bitbucket'])): ?>
+        <?php if (in_array($project->getType(), ['github', 'gitlab', 'crm', 'bitbucket'])): ?>
             <div class="box">
                 <div class="box-header">
                     <h4 class="box-title"><?php Lang::out('webhooks'); ?></h4>
@@ -229,6 +229,11 @@
                             break;
 
                         case 'gitlab':
+                            $url = APP_URL. 'webhook/gitlab/' . $project->getId();
+                            Lang::out('webhooks_help_gitlab');
+                            break;
+
+                        case 'crm':
                             $url = APP_URL. 'webhook/gitlab/' . $project->getId();
                             Lang::out('webhooks_help_gitlab');
                             break;
