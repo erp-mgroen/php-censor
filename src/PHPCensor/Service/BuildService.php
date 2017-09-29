@@ -64,6 +64,10 @@ class BuildService
         $branches = $project->getBranchesByEnvironment($environment);
         $build->setExtraValue('branches', $branches);
 
+        if (!$this->canBuild()) {
+            return;
+        }
+
         if (!empty($commitId)) {
             $build->setCommitId($commitId);
         } else {
@@ -160,7 +164,7 @@ class BuildService
     {
         $buildId = $build->getId();
 
-        if (empty($buildId) && $this->canBuild()) {
+        if (empty($buildId)) {
             return;
         }
 
