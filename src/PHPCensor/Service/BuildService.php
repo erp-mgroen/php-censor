@@ -187,4 +187,26 @@ class BuildService
             }
         }
     }
+
+    public function getBuildQueue()
+    {
+        $config = Config::getInstance();
+        $settings = $config->get('php-censor.queue', []);
+
+        if (!empty($settings['host']) && !empty($settings['name'])) {
+            try {
+                $pheanstalk = new Pheanstalk($settings['host']);
+                $stats = $pheanstalk->statsTube($settings['name']);
+
+                return (int)$stats['current-jobs-ready'];
+            } catch (\Exception $ex) {
+                $this->queueError = true;
+            }
+        }
+    }
+
+    public function canBuild()
+    {
+        return $this->getBuildQueue() === 0;
+    }
 }
